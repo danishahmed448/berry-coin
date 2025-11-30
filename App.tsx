@@ -83,8 +83,15 @@ const SOLANA_KEY_FOR_METAMASK_KEY = 'last-solana-key-for-metamask-devnet';
 
 const App: React.FC = () => {
   // Network setup
+  // Network setup
   const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => {
+    // Use custom RPC URL if available (Recommended for production to avoid rate limits/403s)
+    if (import.meta.env.VITE_SOLANA_RPC_URL) {
+      return import.meta.env.VITE_SOLANA_RPC_URL;
+    }
+    return clusterApiUrl(network);
+  }, [network]);
 
   // Configure wallets - include WalletConnect for mobile support
   // Get your WalletConnect Project ID from https://cloud.walletconnect.com/
