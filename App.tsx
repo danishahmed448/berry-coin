@@ -83,7 +83,7 @@ const SOLANA_KEY_FOR_METAMASK_KEY = 'last-solana-key-for-metamask-devnet';
 
 const App: React.FC = () => {
   // Network setup
-  const network = WalletAdapterNetwork.Devnet;
+  const network = WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   // Configure wallets - include WalletConnect for mobile support
@@ -96,22 +96,22 @@ const App: React.FC = () => {
   const wallets = useMemo(
     () => {
       const walletList = [];
-      
+
       // Add WalletConnect adapter for mobile wallet support
       try {
         const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'c07c0171c6a3564981b06a3e1b583d4c';
-        
+
         // Log current origin for debugging
         const currentOrigin = window.location.origin;
         console.log('[WalletConnect] Current origin:', currentOrigin);
         console.log('[WalletConnect] Make sure this origin is whitelisted in WalletConnect Cloud dashboard');
-        
+
         if (!projectId || projectId === 'c07c0171c6a3564981b06a3e1b583d4c') {
           console.warn('[WalletConnect] Using default test project ID. For production, set VITE_WALLETCONNECT_PROJECT_ID in .env.local');
         } else {
           console.log('[WalletConnect] Using project ID from environment');
         }
-        
+
         walletList.push(
           new WalletConnectWalletAdapter({
             network: network,
@@ -129,7 +129,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Failed to initialize WalletConnect adapter:', error);
       }
-      
+
       return walletList;
     },
     [network]
@@ -145,9 +145,9 @@ const App: React.FC = () => {
     // Handle WalletConnect specific errors
     if (adapter?.name === 'WalletConnect') {
       // Check for origin/authorization errors
-      if (error?.message?.includes('Unauthorized') || 
-          error?.message?.includes('origin not allowed') ||
-          error?.message?.includes('code: 3000')) {
+      if (error?.message?.includes('Unauthorized') ||
+        error?.message?.includes('origin not allowed') ||
+        error?.message?.includes('code: 3000')) {
         const currentOrigin = window.location.origin;
         console.error('[WalletConnect] ⚠️ Origin not whitelisted error!');
         console.error('[WalletConnect] Current origin:', currentOrigin);
@@ -159,19 +159,19 @@ const App: React.FC = () => {
         console.error('[WalletConnect] Also add:', window.location.hostname === 'localhost' ? 'http://127.0.0.1:3000' : `http://${window.location.hostname}:3000`);
         return; // Don't show as critical, but log the instructions
       }
-      
+
       // Filter out WebSocket connection errors that are common and usually non-critical
-      if (error?.message?.includes('Connection interrupted') || 
-          error?.message?.includes('Fatal socket error') ||
-          error?.message?.includes('WebSocket')) {
+      if (error?.message?.includes('Connection interrupted') ||
+        error?.message?.includes('Fatal socket error') ||
+        error?.message?.includes('WebSocket')) {
         console.warn('[WalletConnect] WebSocket connection issue (usually non-critical):', error.message);
         return; // Don't show these as critical errors
       }
     } else {
       // Filter out WebSocket connection errors for other wallets
-      if (error?.message?.includes('Connection interrupted') || 
-          error?.message?.includes('Fatal socket error') ||
-          error?.message?.includes('WebSocket')) {
+      if (error?.message?.includes('Connection interrupted') ||
+        error?.message?.includes('Fatal socket error') ||
+        error?.message?.includes('WebSocket')) {
         console.warn('[Wallet] WebSocket connection issue (usually non-critical):', error.message);
         return; // Don't show these as critical errors
       }
@@ -190,7 +190,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const ethereum = (window as any).ethereum;
     const solflare = (window as any).solflare;
-    
+
     if (ethereum) {
       try {
         // Check MetaMask network for debugging
@@ -208,7 +208,7 @@ const App: React.FC = () => {
         }).catch(() => {
           console.log(`[App] Could not detect MetaMask network`);
         });
-        
+
         const currentAccount = ethereum.selectedAddress;
         const storedAccount = localStorage.getItem(METAMASK_ACCOUNT_STORAGE_KEY);
 
@@ -216,7 +216,7 @@ const App: React.FC = () => {
         if (currentAccount && storedAccount && currentAccount !== storedAccount) {
           console.log(`[App] MetaMask account mismatch detected! Stored: ${storedAccount}, Current: ${currentAccount}`);
           console.log("[App] Clearing wallet adapter cache and disabling auto-connect...");
-          
+
           // Clear all wallet adapter storage BEFORE auto-connect runs
           const keysToRemove = [
             'walletName',
@@ -226,36 +226,36 @@ const App: React.FC = () => {
             'phantom-wallet-adapter',
             SOLANA_KEY_FOR_METAMASK_KEY
           ];
-          
+
           // Clear all Solana key mappings
           Object.keys(localStorage).forEach(key => {
             if (key.startsWith('solana-key-for-')) {
               keysToRemove.push(key);
             }
           });
-          
+
           keysToRemove.forEach(key => localStorage.removeItem(key));
-          
+
           // Update stored account to current
           localStorage.setItem(METAMASK_ACCOUNT_STORAGE_KEY, currentAccount);
-          
+
           // If Solflare provider exists, check if it has a cached public key
           if (solflare && solflare.publicKey) {
             const cachedSolanaKey = solflare.publicKey.toString();
             console.log(`[App] Solflare has cached Solana key: ${cachedSolanaKey.slice(0, 8)}...`);
             console.log(`[App] This key is from the OLD MetaMask account - will need to reconnect`);
-            
+
             // Store a flag to force reconnection
             localStorage.setItem('force-wallet-reconnect', 'true');
           }
-          
+
           // Disable auto-connect to force manual reconnection with new account
           setShouldAutoConnect(false);
         } else if (currentAccount && !storedAccount) {
           // First time detecting account, store it
           localStorage.setItem(METAMASK_ACCOUNT_STORAGE_KEY, currentAccount);
           console.log("[App] Stored initial MetaMask account:", currentAccount);
-          
+
           // Check if we need to force reconnect
           const forceReconnect = localStorage.getItem('force-wallet-reconnect');
           if (forceReconnect === 'true') {
