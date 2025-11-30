@@ -1,6 +1,6 @@
 export const TOKEN_NAME = "Berry";
 export const TOKEN_TICKER = "$BERRY";
-export const CONTRACT_ADDRESS = "4wrZ3h2DWSFr9qWKzx2Z4tWsJzLgFKCecZYxEcaZzADv";
+export const CONTRACT_ADDRESS = "Hfy1JHGFxnYSvd7xFHR7s2M7GU6FJKhGoU1rmXCPu8ji";
 export const TOTAL_SUPPLY = "3,000,000,000,000";
 export const BURN_RATE = "1%";
 export const BURN_ADDRESS = "GnuhgGzB4ekj2KhSfaCraMJ2GYBfRcGZJPHPEt6g9Yzc";
